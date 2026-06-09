@@ -5,7 +5,7 @@ import json
 HOST = 'pyp2p.mfcaetano.cc'  # Usando o Hostname que você passou nos comentários
 PORT = 8080                  # Porta de conexão
 
-def registrar(meu_nome="alice", meu_namespace="UnB", minha_porta=4000):
+def registrar(meu_nome, meu_namespace, minha_porta):
     """
     Conecta ao Rendezvous e registra este nó.
     Retorna True se o registro foi bem-sucedido, e False caso contrário.

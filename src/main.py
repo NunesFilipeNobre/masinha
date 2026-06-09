@@ -1,28 +1,18 @@
 # main.py
-from rendezvous_connection import registrar, descobrir
 from state import NodeState
-from peer_connection import PeerConnectionManager
-from cli import CLI # <-- Adicione a importação do CLI
-import time
+from p2p_client import P2PClient
 
 def main():
-    print("--- Iniciando Nó P2P ---")
+    print("--- Inicializando Aplicação P2P ---")
+    
+    # 1. Cria a memória base
     estado = NodeState()
-
-    conexao_p2p = PeerConnectionManager(porta_local=estado.minha_porta)
-    conexao_p2p.iniciar_servidor()
-
-    registrar(meu_nome=estado.meu_nome, meu_namespace=estado.meu_namespace, minha_porta=estado.minha_porta)
-    time.sleep(1) 
-
-    lista_de_peers = descobrir(meu_namespace=estado.meu_namespace)
-    if lista_de_peers:
-        estado.atualizar_peers(lista_de_peers)
-
-    # --- INICIAR A INTERFACE ---
-    # Isso vai prender o programa no loop do terminal, impedindo que ele feche!
-    terminal = CLI(estado, conexao_p2p)
-    terminal.iniciar()
+    
+    # 2. Cria o cérebro da aplicação
+    cliente = P2PClient(estado)
+    
+    # 3. Dá a partida
+    cliente.iniciar()
 
 if __name__ == "__main__":
     main()
