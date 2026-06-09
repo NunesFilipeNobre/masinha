@@ -1,0 +1,1 @@
+#Controle de estado e gerencia reconexão com peers conhecidos na table

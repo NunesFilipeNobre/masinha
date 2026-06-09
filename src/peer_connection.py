@@ -1,0 +1,1 @@
+#Controla as conexões TCP e mensagens entre os peers

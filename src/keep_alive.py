@@ -1,0 +1,1 @@
+#Fica enviando PING e recebendo PONG pra manter a conexão viva
