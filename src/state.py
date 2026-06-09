@@ -3,9 +3,9 @@
 class NodeState:
     def __init__(self):
         # Aqui você guarda quem você é
-        self.meu_nome = "alice"
+        self.meu_nome = "malario"
         self.meu_namespace = "UnB"
-        self.minha_porta = 4000
+        self.minha_porta = 4005
         
         # Aqui é onde vamos salvar a lista que vem do servidor
         self.peers_conhecidos = []
