@@ -4,7 +4,7 @@ from peer_table import PeerTable
 
 class NodeState:
     def __init__(self):
-        self.meu_nome = "Apple1"      # Troque para "bob" no outro PC
+        self.meu_nome = "Bob4"      # Troque para "bob" no outro PC
         self.meu_namespace = "UnB"
         self.minha_porta = 4008      
         

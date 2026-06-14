@@ -41,6 +41,7 @@ class PeerConnectionManager:
         print("p2p> ", end="", flush=True)
         
         with socket_cliente:
+            socket_cliente.settimeout(None)
             try:
                 # 1. Fase de Handshake (HELLO)
                 dados_iniciais = socket_cliente.recv(4096)
@@ -58,6 +59,7 @@ class PeerConnectionManager:
                        "ttl": 1
                     }
                     socket_cliente.sendall((json.dumps(resposta_ok) + "\n").encode('utf-8'))
+                    self.estado.tabela.salvar_conexao(peer_remetente, socket_cliente)
                 else:
                     return
 
@@ -111,9 +113,11 @@ class PeerConnectionManager:
                 
             ip_destino = info_peer['ip']
             porta_destino = int(info_peer['port'])
-            
-           
-            
+
+            #teste ne 
+            ip_destino = '127.0.0.1' 
+            print(f"[DEBUG] Atirando localmente em: {ip_destino}:{porta_destino}")
+            ######
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(5.0)
@@ -132,6 +136,10 @@ class PeerConnectionManager:
                 # Espera HELLO_OK
                 resposta = sock.recv(4096)
                 if json.loads(resposta.decode('utf-8').strip()).get("type") == "HELLO_OK":
+
+                    sock.settimeout(None)
+
+
                     # DEU CERTO! Salva a conexão
                     self.estado.tabela.salvar_conexao(peer_id_destino, sock)
                     print(f"[CLIENT] Conexão persistente criada com {peer_id_destino}!")
@@ -166,3 +174,68 @@ class PeerConnectionManager:
             print(f"[CLIENT] O cano morreu inesperadamente: {e}")
             self.estado.tabela.conhecidos[peer_id_destino]['status'] = "STALE"
             return False
+        
+    
+    def enviar_pub(self, destino, texto_mensagem):
+        """Dispara um pacote PUB para os canos TCP que já estão abertos"""
+        msg_id = str(uuid.uuid4())
+        pacote_pub = {
+            "type": "PUB",
+            "msg_id": msg_id,
+            "src": self.estado.peer_id,
+            "dst": destino,
+            "payload": texto_mensagem,
+            "require_ack": False,  # PUB nunca pede ACK de acordo com a especificação
+            "ttl": 1
+        }
+        json_pub = (json.dumps(pacote_pub) + "\n").encode('utf-8')
+        enviados = 0
+
+        # Vasculha todos os peers conhecidos na tabela
+        for peer_id, info in list(self.estado.tabela.conhecidos.items()):
+            
+            # Lógica de Namespace-cast do professor (ex: se destino for #UnB)
+            if destino.startswith("#"):
+                ns_alvo = destino[1:] # Tira a hashtag para sobrar só 'UnB'
+                # Se o peer_id (ex: bob@CIC) não termina com '@UnB', pula ele
+                if not peer_id.endswith(f"@{ns_alvo}"):
+                    continue
+
+            # Tenta pegar a conexão. O PUB só vai para quem já tem cano aberto!
+            sock = self.estado.tabela.obter_conexao(peer_id)
+            if sock:
+                try:
+                    sock.sendall(json_pub)
+                    enviados += 1
+                except Exception as e:
+                    print(f"\n[PUB] Erro ao enviar para {peer_id}: {e}")
+                    self.estado.tabela.conhecidos[peer_id]['status'] = 'STALE'
+                    
+        print(f"[CLIENT] Broadcast disparado para {enviados} peer(s) ativo(s).")
+    def encerrar_todas_conexoes(self):
+        """Envia BYE para todos os peers ativos antes de fechar o programa"""
+        conexoes_ativas = list(self.estado.tabela.conexoes.items())
+        
+        for peer_id, sock in conexoes_ativas:
+            try:
+                msg_id = str(uuid.uuid4())
+                pacote_bye = {
+                    "type": "BYE",
+                    "msg_id": msg_id,
+                    "src": self.estado.peer_id,
+                    "dst": peer_id,
+                    "reason": "Encerrando nó P2P",
+                    "ttl": 1
+                }
+                sock.sendall((json.dumps(pacote_bye) + "\n").encode('utf-8'))
+                print(f"[SHUTDOWN] BYE enviado para {peer_id}")
+            except Exception:
+                pass
+            
+            # Fecha o socket localmente para liberar a porta do sistema operacional
+            try:
+                sock.close()
+            except:
+                pass
+                
+        self.estado.tabela.conexoes.clear()
