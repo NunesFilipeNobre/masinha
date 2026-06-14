@@ -64,8 +64,27 @@ class MessageRouter:
             pass
 
     def _lidar_com_pong(self, pacote):
-        """Avisa que o peer está vivo (Opcional: implementar cálculo de latência aqui depois)"""
-        print(f"\n[KEEP-ALIVE] PONG recebido! Conexão saudável.")
+        """Avisa que o peer está vivo e calcula a latência (RTT)"""
+        import time
+        msg_id = pacote.get("msg_id")
+        
+        # Verifica se nós enviamos esse PING
+        if msg_id in self.estado.tabela.ping_tracking:
+            peer_id, tempo_envio = self.estado.tabela.ping_tracking.pop(msg_id)
+            rtt_ms = (time.time() - tempo_envio) * 1000 # Converte pra milissegundos
+            
+            # Puxa o cadastro do peer para guardar o histórico
+            info_peer = self.estado.tabela.conhecidos.get(peer_id)
+            if info_peer:
+                # Usa .setdefault para criar a lista 'rtts' se não existir
+                lista_rtts = info_peer.setdefault('rtts', [])
+                lista_rtts.append(rtt_ms)
+                info_peer['rtts'] = lista_rtts[-5:] # Mantém só os últimos 5 para a média
+            
+            print(f"\n[KEEP-ALIVE] PONG de {peer_id} | RTT: {rtt_ms:.2f} ms")
+        else:
+            print(f"\n[KEEP-ALIVE] PONG recebido, mas origem desconhecida.")
+            
         print("p2p> ", end="", flush=True)
     
     def _lidar_com_pub(self, pacote):

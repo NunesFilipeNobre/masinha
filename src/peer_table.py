@@ -7,6 +7,7 @@ class PeerTable:
         self.meu_peer_id = meu_peer_id
         self.conhecidos = {}  # Dicionário: peer_id -> {ip, port, status}
         self.conexoes = {}    # Dicionário: peer_id -> Objeto de Socket TCP ativo
+        self.ping_tracking = {} # Mapeia: msg_id -> (peer_id, timestamp_de_envio)
 
     def registrar_da_rede(self, dados_rendezvous):
         """Pega a lista do professor e cadastra quem a gente não conhece"""

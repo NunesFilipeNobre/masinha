@@ -2,7 +2,7 @@
 import time
 from rendezvous_connection import registrar, descobrir, desregistrar
 from peer_connection import PeerConnectionManager
-from cli import CLI
+from CLI.cli import CLI
 from message_router import MessageRouter
 from keep_alive import KeepAliveManager
 

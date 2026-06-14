@@ -27,12 +27,14 @@ class KeepAliveManager:
             
             for peer_id, sock in conexoes_ativas:
                 try:
+                    msg_id_unico = str(uuid.uuid4())
                     pacote_ping = {
                         "type": "PING",
-                        "msg_id": str(uuid.uuid4()),
+                        "msg_id": msg_id_unico,
                         "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
                         "ttl": 1
                     }
+                    self.estado.tabela.ping_tracking[msg_id_unico] = (peer_id, time.time())
                     sock.sendall((json.dumps(pacote_ping) + "\n").encode('utf-8'))
                     # Debug sutil só pra gente ver que enviou
                     print(f"\n[KEEP-ALIVE] PING enviado para {peer_id}")
