@@ -7,8 +7,8 @@ import uuid
 class PeerConnectionManager:
     def __init__(self, estado, roteador):
         self.estado = estado
-        self.roteador = roteador # <-- Recebemos o roteador injetado aqui
-        self.porta_local = estado.minha_porta
+        self.roteador = roteador
+        self.porta_local = int(estado.minha_porta)
         self.rodando = True
 
     def iniciar_servidor(self):
@@ -71,8 +71,6 @@ class PeerConnectionManager:
                     for linha in linhas:
                         if not linha: continue
                         pacote = json.loads(linha)
-                        
-                        # O Socket não sabe mais o que é SEND ou ACK. O roteador decide.
                         self.roteador.processar_mensagem(pacote, socket_cliente)
                                 
             except Exception as e:
@@ -81,11 +79,30 @@ class PeerConnectionManager:
         print(f"\n[SERVER] Conexão encerrada com {ip_peer}")
         print("p2p> ", end="", flush=True)
 
+    def _escutar_conexao_persistente(self, socket_peer, endereco):
+        """Ouve mensagens em uma conexão que já passou pelo Handshake"""
+        ip_peer, porta_peer = endereco
+        try:
+            while self.rodando:
+                dados = socket_peer.recv(4096)
+                if not dados:
+                    break # Conexão caiu
+                
+                linhas = dados.decode('utf-8').strip().split('\n')
+                for linha in linhas:
+                    if not linha: continue
+                    pacote = json.loads(linha)
+                    
+                    self.roteador.processar_mensagem(pacote, socket_peer)
+        except Exception as e:
+            print(f"\n[CLIENT] Conexão persistente interrompida com {ip_peer}: {e}")
+            print("p2p> ", end="", flush=True)
+
     def enviar_mensagem(self, peer_id_destino, texto_mensagem):
-        # 1. Verifica se já temos uma conexão aberta com essa pessoa
+        # 1. Verifica se já temos uma conexão aberta e saudável
         sock = self.estado.tabela.obter_conexao(peer_id_destino)
         
-        # Se NÃO temos a conexão, criamos ela e fazemos o Handshake
+        # Se NÃO temos a conexão, criamos uma nova DO ZERO
         if not sock:
             info_peer = self.estado.tabela.obter_info(peer_id_destino)
             if not info_peer:
@@ -95,8 +112,11 @@ class PeerConnectionManager:
             ip_destino = info_peer['ip']
             porta_destino = int(info_peer['port'])
             
+           
+            
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(5.0)
                 sock.connect((ip_destino, porta_destino))
                 
                 # Handshake HELLO
@@ -112,14 +132,13 @@ class PeerConnectionManager:
                 # Espera HELLO_OK
                 resposta = sock.recv(4096)
                 if json.loads(resposta.decode('utf-8').strip()).get("type") == "HELLO_OK":
-                    # DEU CERTO! Salva a conexão para nunca mais fechar
+                    # DEU CERTO! Salva a conexão
                     self.estado.tabela.salvar_conexao(peer_id_destino, sock)
                     print(f"[CLIENT] Conexão persistente criada com {peer_id_destino}!")
                     
-                    # Cria uma thread para ficar lendo o que ele responder depois 
-                    # (já que a conexão não vai fechar, alguém precisa escutar ela)
+                    # Cria a thread pra escutar sem pedir HELLO de novo
                     threading.Thread(
-                        target=self._lidar_com_cliente, 
+                        target=self._escutar_conexao_persistente, 
                         args=(sock, (ip_destino, porta_destino)), 
                         daemon=True
                     ).start()
@@ -129,7 +148,7 @@ class PeerConnectionManager:
                 print(f"[CLIENT] Erro ao conectar com {peer_id_destino}: {e}")
                 return False
 
-        # 2. Agora que temos o "cano" aberto garantido, só disparamos a mensagem SEND
+        # 2. Agora o cano está garantido e aberto! Mandamos o SEND.
         try:
             msg_id = str(uuid.uuid4())
             pacote_send = {
@@ -144,6 +163,6 @@ class PeerConnectionManager:
             sock.sendall((json.dumps(pacote_send) + "\n").encode('utf-8'))
             return True
         except Exception as e:
-            print(f"[CLIENT] Erro ao enviar mensagem no socket aberto: {e}")
+            print(f"[CLIENT] O cano morreu inesperadamente: {e}")
             self.estado.tabela.conhecidos[peer_id_destino]['status'] = "STALE"
             return False

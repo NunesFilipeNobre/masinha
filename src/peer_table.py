@@ -31,7 +31,7 @@ class PeerTable:
                 
             if pid not in self.conhecidos:
                 self.conhecidos[pid] = {
-                    'ip': p.get('ip'), 
+                    'ip':p.get('ip'),  
                     'port': p.get('port'), 
                     'status': 'DISCONNECTED'
                 }
