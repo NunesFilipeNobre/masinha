@@ -7,6 +7,7 @@ class PeerTable:
         self.meu_peer_id = meu_peer_id
         self.conhecidos = {}  # Dicionário: peer_id -> {ip, port, status}
         self.conexoes = {}    # Dicionário: peer_id -> Objeto de Socket TCP ativo
+        self.ping_tracking = {} # Mapeia: msg_id -> (peer_id, timestamp_de_envio)
 
     def registrar_da_rede(self, dados_rendezvous):
         """Pega a lista do professor e cadastra quem a gente não conhece"""
@@ -31,13 +32,13 @@ class PeerTable:
                 
             if pid not in self.conhecidos:
                 self.conhecidos[pid] = {
-                    'ip':p.get('ip'),  
+                    'ip': '127.0.0.1',     #p.get('ip'),  
                     'port': p.get('port'), 
                     'status': 'DISCONNECTED'
                 }
             else:
                 # Atualiza caso o IP/Porta da pessoa tenha mudado
-                self.conhecidos[pid]['ip'] = p.get('ip')
+                self.conhecidos[pid]['ip'] = '127.0.0.1'  #p.get('ip')
                 self.conhecidos[pid]['port'] = p.get('port')
 
     def salvar_conexao(self, peer_id, socket_conn):

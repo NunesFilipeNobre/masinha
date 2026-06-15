@@ -69,3 +69,21 @@ def descobrir(meu_namespace="UnB"):
         except Exception as e:
             print(f"[DISCOVER] Falha ao tentar descobrir os nós: {e}")
             return []
+def desregistrar(meu_nome, meu_namespace):
+    """Avisa o Rendezvous que estamos saindo da rede"""
+    dados_saida = {
+        "type": "UNREGISTER",
+        "namespace": meu_namespace,
+        "name": meu_nome
+    }
+    
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(3.0) 
+        try:
+            print(f"\n[UNREGISTER] Avisando o servidor {HOST}...")
+            s.connect((HOST, PORT))
+            mensagem_json = json.dumps(dados_saida) + "\n"
+            s.sendall(mensagem_json.encode('utf-8'))
+            print("[UNREGISTER] Sucesso! Estamos fora do Rendezvous.")
+        except Exception as e:
+            print(f"[UNREGISTER] Falha ao desregistrar: {e}")

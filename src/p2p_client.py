@@ -1,9 +1,10 @@
 # p2p_client.py
 import time
-from rendezvous_connection import registrar, descobrir
+from rendezvous_connection import registrar, descobrir, desregistrar
 from peer_connection import PeerConnectionManager
-from cli import CLI
+from CLI.cli import CLI
 from message_router import MessageRouter
+from keep_alive import KeepAliveManager
 
 class P2PClient:
     def __init__(self, estado):
@@ -15,6 +16,7 @@ class P2PClient:
         # 2. Passa o roteador para a conexão
         self.conexao_p2p = PeerConnectionManager(self.estado, self.roteador)
         
+        self.keep_alive = KeepAliveManager(self.estado)
         self.terminal = CLI(self.estado, self)
 
     def iniciar(self):
@@ -39,6 +41,7 @@ class P2PClient:
         self.atualizar_rede()
 
         # 4. Trava o programa no loop da Interface
+        self.keep_alive.iniciar()
         self.terminal.iniciar()
 
     def atualizar_rede(self):
@@ -49,5 +52,12 @@ class P2PClient:
             
     def parar(self):
         """Desliga o sistema graciosamente"""
+        print("\n[Client] Iniciando protocolo de encerramento...")
         self.conexao_p2p.rodando = False
-        # Futuramente: enviar BYE para os peers conectados aqui
+        self.keep_alive.rodando = False
+        
+        # 1. Manda o BYE para os amigos e fecha os sockets
+        self.conexao_p2p.encerrar_todas_conexoes()
+        
+        # 2. Avisa o professor que estamos saindo
+        desregistrar(self.estado.meu_nome, self.estado.meu_namespace)
