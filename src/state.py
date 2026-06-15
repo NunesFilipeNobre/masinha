@@ -4,22 +4,10 @@ from peer_table import PeerTable
 
 class NodeState:
     def __init__(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
         # Aqui você guarda quem você é
         self.meu_nome = "malario"
         self.meu_namespace = "UnB"
         self.minha_porta = 4005
-=======
-        self.meu_nome = "Apple1"      # Troque para "bob" no outro PC
-        self.meu_namespace = "UnB"
-        self.minha_porta = 4008      
->>>>>>> 492a482a1f639e4c4222d955bcfe057e101a99c1
-=======
-        self.meu_nome = "Bob2"      # Troque para "bob" no outro PC
-        self.meu_namespace = "UnB"
-        self.minha_porta = 4008
->>>>>>> 58aa0bdbf929453f866544b5c5f310259d42f9bb
         
         # A Tabela assume o controle!
         self.tabela = PeerTable(self.peer_id)
