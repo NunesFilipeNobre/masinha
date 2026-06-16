@@ -5,6 +5,7 @@ from peer_connection import PeerConnectionManager
 from CLI.cli import CLI
 from message_router import MessageRouter
 from keep_alive import KeepAliveManager
+from reconnect_manager import ReconnectManager
 
 class P2PClient:
     def __init__(self, estado):
@@ -18,6 +19,7 @@ class P2PClient:
         
         self.keep_alive = KeepAliveManager(self.estado)
         self.terminal = CLI(self.estado, self)
+        self.reconnect_manager = ReconnectManager(self.estado, self.conexao_p2p)
 
     def iniciar(self):
         """Orquestra o boot do nó P2P"""
@@ -42,6 +44,7 @@ class P2PClient:
 
         # 4. Trava o programa no loop da Interface
         self.keep_alive.iniciar()
+        self.reconnect_manager.iniciar()
         self.terminal.iniciar()
 
     def atualizar_rede(self):
@@ -55,7 +58,7 @@ class P2PClient:
         print("\n[Client] Iniciando protocolo de encerramento...")
         self.conexao_p2p.rodando = False
         self.keep_alive.rodando = False
-        
+        self.reconnect_manager.rodando = False
         # 1. Manda o BYE para os amigos e fecha os sockets
         self.conexao_p2p.encerrar_todas_conexoes()
         

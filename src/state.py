@@ -6,7 +6,7 @@ class NodeState:
     def __init__(self):
         self.meu_nome = "Bob2"      # Troque para "bob" no outro PC
         self.meu_namespace = "UnB"
-        self.minha_porta = 4008
+        self.minha_porta = 4009
         
         # A Tabela assume o controle!
         self.tabela = PeerTable(self.peer_id)
