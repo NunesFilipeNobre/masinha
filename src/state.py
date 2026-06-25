@@ -5,7 +5,7 @@ from peer_table import PeerTable
 class NodeState:
     def __init__(self):
         # Aqui você guarda quem você é
-        self.meu_nome = "malario"
+        self.meu_nome = "sonze"
         self.meu_namespace = "UnB"
         self.minha_porta = 4005
         

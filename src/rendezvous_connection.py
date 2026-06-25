@@ -2,7 +2,7 @@ import socket
 import json
 
 # Configurações do servidor Rendezvous
-HOST = 'pyp2p.mfcaetano.cc'  # Usando o Hostname que você passou nos comentários
+HOST = 'pyp2p.mfcaetano.cc'  # Usando o Hostnames que você passou nos comentários
 PORT = 8080                  # Porta de conexão
 
 def registrar(meu_nome, meu_namespace, minha_porta):

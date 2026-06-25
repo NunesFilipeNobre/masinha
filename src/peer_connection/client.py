@@ -26,7 +26,7 @@ class PeerClient:
             porta_destino = int(info_peer['port'])
 
             #teste ne 
-            ip_destino = '127.0.0.1' 
+            #ip_destino = '127.0.0.1' 
             print(f"[DEBUG] Atirando localmente em: {ip_destino}:{porta_destino}")
             ######
             try:

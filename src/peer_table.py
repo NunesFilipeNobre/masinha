@@ -32,13 +32,13 @@ class PeerTable:
                 
             if pid not in self.conhecidos:
                 self.conhecidos[pid] = {
-                    'ip': '127.0.0.1',     #p.get('ip'),  
+                    'ip':p.get('ip'),  
                     'port': p.get('port'), 
                     'status': 'DISCONNECTED'
                 }
             else:
                 # Atualiza caso o IP/Porta da pessoa tenha mudado
-                self.conhecidos[pid]['ip'] = '127.0.0.1'  #p.get('ip')
+                self.conhecidos[pid]['ip'] = p.get('ip')
                 self.conhecidos[pid]['port'] = p.get('port')
 
     def salvar_conexao(self, peer_id, socket_conn):
