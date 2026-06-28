@@ -1,5 +1,7 @@
 # state.py
 
+import json
+
 from peer_table import PeerTable
 
 class NodeState:
@@ -12,6 +14,17 @@ class NodeState:
         # A Tabela assume o controle!
         self.tabela = PeerTable(self.peer_id)
 
+    # NOVO: Dicionário para rastrear os 5 segundos do SEND
+        self.tabela.ack_tracking = {} 
+
+        # NOVO: Carregar arquivo de configuração
+        try:
+            with open("config.json", "r") as f:
+                self.config = json.load(f)
+        except FileNotFoundError:
+            self.config = {"keep_alive_interval": 30, "log_level": "INFO"}
+            
+        self.log_level = self.config.get("log_level", "INFO")
     @property
     def peer_id(self):
         return f"{self.meu_nome}@{self.meu_namespace}"

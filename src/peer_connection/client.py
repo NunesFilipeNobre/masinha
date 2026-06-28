@@ -1,15 +1,32 @@
-
-#peer_connection/client.py
+# peer_connection/client.py
 import socket
 import threading
 import json
 import uuid
+import time
 
 class PeerClient:
     def __init__(self, estado, roteador):
         self.estado = estado
         self.roteador = roteador
         self.rodando = True
+        # Inicia a thread que vigia os 5 segundos do ACK
+        threading.Thread(target=self._vigiar_timeouts, daemon=True).start()
+    
+    def _vigiar_timeouts(self):
+        """Fica varrendo a memória para ver se alguma mensagem atrasou > 5s"""
+        from datetime import datetime
+        while self.rodando:
+            time.sleep(1)
+            agora = time.time()
+            
+            for msg_id, info in list(self.estado.tabela.ack_tracking.items()):
+                if agora - info['timestamp'] > 5.0:
+                    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    print(f"\n[{ts}] [Router] TIMEOUT: Sem ACK de {info['dst']} após 5 segundos.")
+                    print("p2p> ", end="", flush=True)
+                    # Apaga para não avisar duas vezes
+                    del self.estado.tabela.ack_tracking[msg_id]
 
     def enviar_mensagem(self, peer_id_destino, texto_mensagem):
         # 1. Verifica se já temos uma conexão aberta e saudável
@@ -25,10 +42,6 @@ class PeerClient:
             ip_destino = info_peer['ip']
             porta_destino = int(info_peer['port'])
 
-            #teste ne 
-            #ip_destino = '127.0.0.1' 
-            print(f"[DEBUG] Atirando localmente em: {ip_destino}:{porta_destino}")
-            ######
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(5.0)
@@ -61,6 +74,7 @@ class PeerClient:
                     ).start()
                 else:
                     return False
+        
             except Exception as e:
                 print(f"[CLIENT] Erro ao conectar com {peer_id_destino}: {e}")
                 return False
@@ -77,11 +91,25 @@ class PeerClient:
                 "require_ack": True,
                 "ttl": 1
             }
+            
+            # --- O CRONÔMETRO DE 5 SEGUNDOS ENTRA AQUI ---
+            # Anotamos a hora exata antes do pacote sair para a rede
+            self.estado.tabela.ack_tracking[msg_id] = {
+                "timestamp": time.time(),
+                "dst": peer_id_destino
+            }
+            # ----------------------------------------------
+            
             sock.sendall((json.dumps(pacote_send) + "\n").encode('utf-8'))
             return True
         except Exception as e:
             print(f"[CLIENT] O cano morreu inesperadamente: {e}")
             self.estado.tabela.conhecidos[peer_id_destino]['status'] = "STALE"
+            
+            # Se o socket quebrou na hora de enviar, a gente remove a contagem do timeout
+            if msg_id in self.estado.tabela.ack_tracking:
+                del self.estado.tabela.ack_tracking[msg_id]
+                
             return False
 
     def _escutar_conexao_persistente(self, socket_peer, endereco):
@@ -100,5 +128,5 @@ class PeerClient:
                     
                     self.roteador.processar_mensagem(pacote, socket_peer)
         except Exception as e:
-            print(f"\n[CLIENT] Conexão persistente interrompida com {ip_peer}: {e}")
-            print("p2p> ", end="", flush=True)
+            # Silenciado para não sujar o log quando a conexão cai de propósito
+            pass

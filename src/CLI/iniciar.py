@@ -1,11 +1,14 @@
 # CLI/iniciar.py
 import sys
+
+from CLI.reconnect import forcar_reconexao
 from .ajuda import mostrar_ajuda
 from .listar import listar_peers
 from .msg import enviar_mensagem
 from .pub import enviar_pub
 from .rtt import mostrar_rtt
 from .conn import mostrar_conexoes
+from .log import alterar_log
 def iniciar(cli):
     print("\n" + "="*50)
     print(" Terminal P2P Iniciado! Digite /ajuda para comandos")
@@ -21,6 +24,10 @@ def iniciar(cli):
                 mostrar_ajuda()
             elif comando == "/listar" or comando == "/peers":
                 listar_peers(cli)
+            elif comando == "/reconnect":
+                forcar_reconexao(cli)
+            elif comando.startswith("/log"):
+                alterar_log(cli, comando)
             elif comando.startswith("/msg"):
                 enviar_mensagem(cli, comando)
             elif comando.startswith("/pub"):

@@ -30,7 +30,9 @@ class MessageRouter:
     def _lidar_com_send(self, pacote, socket_cliente):
         remetente = pacote.get("src", "Desconhecido")
         texto = pacote.get("payload", "")
-        
+        agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"\n[{agora}] [Router] MENSAGEM DE {remetente}: {texto}")
+        print("p2p> ", end="", flush=True)
         print(f"\n[MENSAGEM DE {remetente}]: {texto}")
         print("p2p> ", end="", flush=True)
         
@@ -47,8 +49,16 @@ class MessageRouter:
                 print(f"\n[ROUTER] Erro ao enviar ACK: {e}")
 
     def _lidar_com_ack(self, pacote):
-        print(f"\n[CLIENT] Mensagem entregue com sucesso! (ACK recebido)")
-        print("p2p> ", end="", flush=True)
+        msg_id = pacote.get("msg_id")
+        
+        # NOVO: O ACK chegou a tempo! Apagamos da tabela do vigia
+        if msg_id in self.estado.tabela.ack_tracking:
+            del self.estado.tabela.ack_tracking[msg_id]
+            
+        agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if self.estado.log_level == "DEBUG":
+            print(f"\n[{agora}] [Router] Mensagem entregue com sucesso! (ACK recebido)")
+            print("p2p> ", end="", flush=True)
 
     def _lidar_com_ping(self, pacote, socket_cliente):
         """Devolve um PONG imediatamente ao receber um PING"""

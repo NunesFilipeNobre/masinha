@@ -11,7 +11,8 @@ class KeepAliveManager:
     def __init__(self, estado):
         self.estado = estado
         self.rodando = True
-        self.intervalo_segundos = 30 # A especificação costuma pedir 30s
+        #self.intervalo_segundos = 30
+        self.intervalo_segundos = self.estado.config.get("keep_alive_interval", 30)
 
     def iniciar(self):
         t = threading.Thread(target=self._rotina_ping, daemon=True)

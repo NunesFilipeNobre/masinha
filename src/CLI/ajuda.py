@@ -9,3 +9,4 @@ def mostrar_ajuda():
     print("  /pub * <texto>            - Envia uma mensagem para todos os peers conectados")
     print("  /pub #namespace <texto>   - Envia uma mensagem para todos os peers de um namespace específico\n")
     print(" /rtt - Mostra o rtt\n")
+    print("  /log <INFO|DEBUG>       - Altera a quantidade de logs na tela")

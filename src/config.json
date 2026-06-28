@@ -1,0 +1,5 @@
+{
+    "keep_alive_interval": 30,
+    "log_level": "INFO",
+    "max_reconnect_attempts": 5
+}
