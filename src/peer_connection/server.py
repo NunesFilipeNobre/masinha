@@ -15,7 +15,7 @@ class PeerServer:
         thread_servidor = threading.Thread(target=self._executar_servidor, daemon=True)
         thread_servidor.start()
         print(f"[SERVER] Servidor TCP P2P iniciado na porta {self.porta_local}")
-
+    #function _executar_servidor cria um socket TCP, vincula-o à porta local e entra em um loop para aceitar conexões de entrada. Para cada conexão aceita, ele cria uma nova thread que chama a função _lidar_com_cliente para gerenciar a comunicação com o peer conectado.
     def _executar_servidor(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as servidor:
             servidor.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -43,7 +43,7 @@ class PeerServer:
         with socket_cliente:
             socket_cliente.settimeout(None)
             try:
-                # 1. Fase de Handshake (HELLO)
+                #  Fase de Handshake (HELLO)
                 dados_iniciais = socket_cliente.recv(4096)
                 if not dados_iniciais: return
                 msg_hello = json.loads(dados_iniciais.decode('utf-8').strip())
@@ -63,7 +63,7 @@ class PeerServer:
                 else:
                     return
 
-                # 2. Fase de Chat (Encaminha tudo para o Roteador)
+                # Fase de Chat (Encaminha tudo para o Roteador)
                 while self.rodando:
                     dados_chat = socket_cliente.recv(4096)
                     if not dados_chat:

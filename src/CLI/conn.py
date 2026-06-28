@@ -1,6 +1,8 @@
 # CLI/conn.py
+
+# Mostra as conexões TCP persistentes abertas quando o usuário digita /conn
 def mostrar_conexoes(cli):
-    print("\n--- Conexões Ativas (Persistentes) ---")
+    print("\n--- Conexões Ativas ---")
     
     conexoes_ativas = cli.estado.tabela.conexoes
     
@@ -9,7 +11,7 @@ def mostrar_conexoes(cli):
     else:
         for peer_id, sock in conexoes_ativas.items():
             try:
-                # O getpeername() extrai o IP e a porta reais da ponta do socket
+                #O getpeername() extrai o IP e a porta reais da ponta do socket
                 ip_remoto, porta_remota = sock.getpeername()
                 print(f"[{peer_id}] Conectado via TCP -> {ip_remoto}:{porta_remota}")
             except Exception:

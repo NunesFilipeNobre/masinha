@@ -11,10 +11,10 @@ class P2PClient:
     def __init__(self, estado):
         self.estado = estado
         
-        # 1. Cria o roteador primeiro
+        # Cria o roteador primeiro
         self.roteador = MessageRouter(self.estado)
         
-        # 2. Passa o roteador para a conexão
+        # Passa o roteador para a conexão
         self.conexao_p2p = PeerConnectionManager(self.estado, self.roteador)
         
         self.keep_alive = KeepAliveManager(self.estado)
@@ -23,10 +23,10 @@ class P2PClient:
 
     def iniciar(self):
         """Orquestra o boot do nó P2P"""
-        # 1. Sobe o servidor local para ouvir conexões
+        # Sobe o servidor local para ouvir conexões
         self.conexao_p2p.iniciar_servidor()
 
-        # 2. Registra no professor
+        # Registra no randezvous e descobre peers
         sucesso_registro = registrar(
             meu_nome=self.estado.meu_nome, 
             meu_namespace=self.estado.meu_namespace, 
@@ -39,10 +39,10 @@ class P2PClient:
 
         time.sleep(1)
 
-        # 3. Popula a memória inicial
+        # Popula a memória inicial
         self.atualizar_rede()
 
-        # 4. Trava o programa no loop da Interface
+        # Trava o programa no loop da Interface
         self.keep_alive.iniciar()
         self.reconnect_manager.iniciar()
         self.terminal.iniciar()
@@ -60,8 +60,8 @@ class P2PClient:
         self.keep_alive.rodando = False
         self.reconnect_manager.rodando = False
         
-        # 1. Manda o BYE para os amigos e fecha os sockets
+        # Manda o BYE para os amigos e fecha os sockets
         self.conexao_p2p.encerrar_todas_conexoes()
         
-        # 2. Avisa o professor que estamos saindo
+        # Avisa o rendezvous que estamos saindo
         desregistrar(self.estado.meu_nome, self.estado.meu_namespace)

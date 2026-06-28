@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zap de Massa P2P</title>
+
+  <style>
+    @font-face {
+      font-family: 'MinhaMassinha';
+      src: url('Untitled1.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    :root {
+      --bg-mesa: #b4a790;
+      --massinha-fundo: #ebdcc5;
+      --massinha-verde: #6ea63b;
+      --massinha-azul: #2196f3;
+      --massinha-rosa: #e91e63;
+      --massinha-amarela: #ffeb3b;
+      --massinha-laranja: #ff9800;
+      --massinha-roxa: #9c27b0;
+      --massinha-cinza: #8d857a;
+
+      --textura-ruido: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="0.12"/%3E%3C/svg%3E');
+      --textura-dedos: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="smudge"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23smudge)" opacity="0.08"/%3E%3C/svg%3E');
+    }
+
+    * { box-sizing: border-box; }
+
+    /* EFEITO STOP-MOTION PARA A TEXTURA DA MASSINHA */
+    @keyframes stop-motion-massinha {
+      0% { background-position: 0px 0px; }
+      20% { background-position: 15px 20px; }
+      40% { background-position: -15px -20px; }
+      60% { background-position: 20px -10px; }
+      80% { background-position: -20px 10px; }
+      100% { background-position: 0px 0px; }
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: var(--bg-mesa);
+      background-image: var(--textura-ruido), var(--textura-dedos);
+      font-family: 'MinhaMassinha', 'Comic Sans MS', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 24px;
+      animation: stop-motion-massinha 0.4s steps(1) infinite;
+    }
+
+    /* Layout Principal (Estilo WhatsApp Web) */
+    .app-wrapper {
+      width: 100%;
+      max-width: 1300px;
+      height: min(95vh, 900px);
+      background-color: var(--massinha-fundo);
+      background-image: var(--textura-ruido), var(--textura-dedos);
+      animation: stop-motion-massinha 0.5s steps(1) infinite reverse;
+      border-radius: 42px 36px 52px 34px / 34px 52px 36px 48px;
+      box-shadow:
+        inset -12px -12px 24px rgba(0, 0, 0, 0.25),
+        inset 12px 12px 24px rgba(255, 255, 255, 0.8),
+        16px 20px 35px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: row; 
+      position: relative;
+      filter: url(#amassado-leve);
+      overflow: hidden;
+    }
+
+    /* BARRA LATERAL (CONTATOS) */
+    .sidebar {
+      width: 320px;
+      background: rgba(180, 167, 144, 0.3);
+      border-right: 4px dashed rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 4px dashed rgba(0, 0, 0, 0.15);
+      background-color: var(--massinha-amarela);
+      background-image: var(--textura-ruido), var(--textura-dedos);
+      text-align: center;
+    }
+
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 28px;
+      color: rgba(0,0,0,0.8);
+      text-transform: uppercase;
+      filter: drop-shadow(1px 2px 1px rgba(0,0,0,0.2));
+    }
+
+    .contact-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scrollbar-width: none;
+    }
+    .contact-list::-webkit-scrollbar { display: none; }
+
+    .contact-item {
+      padding: 15px;
+      background-color: rgba(255,255,255,0.4);
+      border-radius: 15px 20px 15px 18px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      transition: all 0.2s ease;
+      box-shadow: inset 2px 2px 5px rgba(255,255,255,0.5), 2px 2px 5px rgba(0,0,0,0.1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .contact-item:hover {
+      background-color: rgba(255,255,255,0.6);
+      transform: scale(1.02);
+    }
+
+    .contact-item.active {
+      background-color: var(--massinha-laranja);
+      background-image: var(--textura-ruido);
+      color: white;
+      text-shadow: 1px 1px 0px rgba(0,0,0,0.3);
+      box-shadow: inset -4px -4px 8px rgba(0,0,0,0.2), inset 4px 4px 8px rgba(255,255,255,0.4);
+    }
+
+    /* ÁREA DE CHAT PRINCIPAL */
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .chat-header {
+      padding: 12px 20px 18px;
+      border-bottom: 4px dashed rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80px;
+    }
+
+    .chat-header h1 {
+      margin: 0;
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-size: 38px;
+      letter-spacing: 0.05em;
+      filter: drop-shadow(2px 4px 2px rgba(0,0,0,0.2));
+    }
+
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      scrollbar-width: none;
+    }
+    .messages-area::-webkit-scrollbar { display: none; }
+
+    .bubble {
+      padding: 16px 24px;
+      max-width: 65%; 
+      font-size: 20px;
+      background-image: var(--textura-ruido), var(--textura-dedos);
+      position: relative;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.45;
+      transform-origin: center;
+      white-space: pre-wrap;
+      filter: url(#amassado-forte) drop-shadow(3px 5px 4px rgba(0,0,0,0.25));
+    }
+
+    .received {
+      background-color: var(--massinha-azul);
+      align-self: flex-start;
+      box-shadow: inset -8px -8px 16px rgba(0, 0, 0, 0.35), inset 8px 8px 16px rgba(255, 255, 255, 0.45);
+    }
+
+    .sent {
+      background-color: var(--massinha-verde);
+      align-self: flex-end;
+      box-shadow: inset -8px -8px 16px rgba(0, 0, 0, 0.35), inset 8px 8px 16px rgba(255, 255, 255, 0.45);
+    }
+
+    .system-msg {
+      background-color: var(--massinha-cinza);
+      align-self: center;
+      color: white;
+      text-align: center;
+      font-size: 16px;
+      max-width: 80%;
+      box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), inset 4px 4px 8px rgba(255,255,255,0.4);
+    }
+
+    .input-area {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(180, 167, 144, 0.2);
+      border-top: 4px dashed rgba(0, 0, 0, 0.15);
+    }
+
+    .input-box {
+      flex: 1;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.5);
+      border: none;
+      border-radius: 22px 18px 24px 20px / 20px 24px 18px 22px;
+      padding: 0 24px;
+      font-family: inherit;
+      font-size: 20px;
+      font-weight: bold;
+      color: rgba(35, 25, 15, 0.9);
+      outline: none;
+      box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.2), inset -6px -6px 12px rgba(255, 255, 255, 0.5);
+      background-image: var(--textura-ruido);
+    }
+
+    .input-box::placeholder {
+      color: rgba(0, 0, 0, 0.5);
+      text-transform: uppercase;
+      font-size: 15px;
+    }
+
+    .send-btn {
+      width: 64px;
+      height: 64px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      font-size: 26px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--massinha-rosa);
+      border-radius: 50%;
+      background-image: var(--textura-ruido), var(--textura-dedos);
+      box-shadow: inset -6px -6px 12px rgba(0, 0, 0, 0.35), inset 6px 6px 12px rgba(255, 255, 255, 0.45);
+      filter: url(#amassado-forte) drop-shadow(2px 4px 4px rgba(0,0,0,0.3));
+      transition: all 0.15s ease;
+    }
+
+    .send-btn:active {
+      transform: scale(0.9) translateY(4px);
+    }
+
+    .massinha-text span {
+      display: inline-block;
+      text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.4), -1px -1px 1px rgba(0, 0, 0, 0.3);
+      margin: 0;
+      font-weight: bold;
+      transform-origin: center bottom;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="amassado-forte" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="amassado-leve" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="app-wrapper">
+    
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2 class="massinha-text" data-bg="amarela">Contatos</h2>
+      </div>
+      <div class="contact-list" id="contact-list">
+        </div>
+    </div>
+
+    <div class="chat-main">
+      <div class="chat-header">
+        <h1 class="massinha-text" data-bg="header" id="chat-title">Sistema P2P</h1>
+      </div>
+
+      <div class="messages-area" id="messages-area">
+        </div>
+
+      <div class="input-area">
+        <input type="text" class="input-box" id="msg-input" placeholder="Amasse sua mensagem aqui..." autocomplete="off"/>
+        <button class="send-btn" id="send-btn">➤</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ESTADO DA APLICAÇÃO
+    const estado = {
+      contatoAtivo: "Sistema",
+      chats: {
+        "Sistema": [] // Array de objetos { sender: "Você"|"Sistema", text: "...", type: "sent"|"received" }
+      }
+    };
+
+    const coresLetras = {
+      rosa: '#e91e63', azul: '#2196f3', verde: '#6ea63b',
+      laranja: '#ff9800', roxo: '#9c27b0', amarela: '#ffeb3b'
+    };
+
+    const inputBox = document.getElementById('msg-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messagesArea = document.getElementById('messages-area');
+    const contactList = document.getElementById('contact-list');
+    const chatTitle = document.getElementById('chat-title');
+
+    // === COMUNICAÇÃO WEBSOCKET ===
+    const ws = new WebSocket('ws://localhost:8765');
+    
+    ws.onopen = function() {
+      adicionarMensagemAoEstado("Sistema", "Conectado ao nó P2P Python com sucesso! Digite /listar para ver os peers.", "received", "Sistema");
+    };
+
+    ws.onmessage = function(event) {
+      const dados = JSON.parse(event.data);
+      const remetente = dados.sender;
+      
+      garantirContato(remetente);
+      adicionarMensagemAoEstado(remetente, dados.text, "received", remetente);
+    };
+
+    // === GERENCIAMENTO DE INTERFACE ===
+
+    function garantirContato(nome) {
+      if (!estado.chats[nome]) {
+        estado.chats[nome] = [];
+        renderizarContatos();
+      }
+    }
+
+    function trocarContato(nome) {
+      estado.contatoAtivo = nome;
+      chatTitle.innerText = nome;
+      aplicarEfeitoMassinha(chatTitle);
+      
+      // Muda placeholder dependendo de onde está
+      if (nome === "Sistema") {
+        inputBox.placeholder = "Digite comandos (/msg, /listar, /conn)...";
+      } else {
+        inputBox.placeholder = `Mensagem para ${nome}...`;
+      }
+
+      renderizarContatos();
+      renderizarMensagens();
+    }
+
+    function adicionarMensagemAoEstado(alvoChat, texto, tipo, remetenteOriginal = "Você") {
+      garantirContato(alvoChat);
+      estado.chats[alvoChat].push({ text: texto, type: tipo, sender: remetenteOriginal });
+      
+      if (estado.contatoAtivo === alvoChat) {
+        renderizarMensagens();
+      }
+    }
+
+    function renderizarContatos() {
+      contactList.innerHTML = '';
+      Object.keys(estado.chats).forEach(nome => {
+        const div = document.createElement('div');
+        div.className = `contact-item ${estado.contatoAtivo === nome ? 'active' : ''}`;
+        div.innerText = nome;
+        div.onclick = () => trocarContato(nome);
+        contactList.appendChild(div);
+      });
+    }
+
+    function renderizarMensagens() {
+      messagesArea.innerHTML = '';
+      const mensagens = estado.chats[estado.contatoAtivo];
+
+      mensagens.forEach(msg => {
+        const bubble = document.createElement('div');
+        let corBg = msg.type === 'sent' ? 'verde' : 'azul';
+        
+        // Se for o sistema mandando avisos genéricos, usamos cinza
+        if (msg.sender === "Sistema" && msg.type === "received") {
+           bubble.className = 'bubble system-msg';
+           corBg = 'cinza';
+        } else {
+           bubble.className = `bubble ${msg.type}`;
+        }
+        
+        bubble.setAttribute('data-bg', corBg);
+
+        const textContainer = document.createElement('span');
+        textContainer.className = 'massinha-text';
+        textContainer.textContent = msg.text;
+
+        bubble.appendChild(textContainer);
+        messagesArea.appendChild(bubble);
+
+        moldarBolhaAleatoria(bubble);
+        aplicarEfeitoMassinha(textContainer);
+      });
+
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    // === ENVIO DE MENSAGENS ===
+    function enviarMensagem() {
+      const textoOriginal = inputBox.value.trim();
+      if (!textoOriginal) return;
+
+      if (estado.contatoAtivo === "Sistema") {
+        // Envia o comando cru pro Python
+        ws.send(textoOriginal);
+        adicionarMensagemAoEstado("Sistema", textoOriginal, "sent");
+
+        // Se for um comando de /msg, cria o contato na lateral automaticamente
+        if (textoOriginal.startsWith("/msg ")) {
+          const partes = textoOriginal.split(" ");
+          if (partes.length >= 3) {
+            const alvo = partes[1];
+            const msgConteudo = partes.slice(2).join(" ");
+            garantirContato(alvo);
+            adicionarMensagemAoEstado(alvo, msgConteudo, "sent");
+            trocarContato(alvo); // Pula direto pro chat da pessoa!
+          }
+        }
+      } else {
+        // Se estiver no chat de uma pessoa específica, traduz para o Python ler
+        const comandoOculto = `/msg ${estado.contatoAtivo} ${textoOriginal}`;
+        ws.send(comandoOculto);
+        adicionarMensagemAoEstado(estado.contatoAtivo, textoOriginal, "sent");
+      }
+
+      inputBox.value = '';
+      inputBox.focus();
+    }
+
+    sendBtn.addEventListener('click', enviarMensagem);
+    inputBox.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') enviarMensagem();
+    });
+
+    // === EFEITOS VISUAIS DA MASSINHA ===
+    function aplicarEfeitoMassinha(elemento) {
+      const text = elemento.innerText;
+      elemento.innerHTML = '';
+      const containerPai = elemento.closest('[data-bg]');
+      const corProibidaIdentificador = containerPai ? containerPai.getAttribute('data-bg') : '';
+      const coresDisponiveis = Object.keys(coresLetras).filter(chave => chave !== corProibidaIdentificador).map(chave => coresLetras[chave]);
+
+      for (let i = 0; i < text.length; i++) {
+        const span = document.createElement('span');
+        if (text[i] === ' ') {
+          span.innerHTML = '&nbsp;';
+        } else {
+          span.innerText = text[i];
+          span.style.color = coresDisponiveis[Math.floor(Math.random() * coresDisponiveis.length)];
+          const rotation = (Math.random() * 6);
+          const scale = 0.95 + (Math.random() * 0.20);
+          const translateY = (Math.random() * 2);
+          const translateX = (Math.random() * 1.5) - 0.45;
+          const skewX = (Math.random() * 4) - 2;
+          span.style.transform = `translate(${translateX}px, ${translateY}px) rotate(${rotation}deg) scale(${scale}) skewX(${skewX}deg)`;
+          span.style.marginRight = '0.5px';
+        }
+        elemento.appendChild(span);
+      }
+    }
+
+    function moldarBolhaAleatoria(bolha) {
+      const tEsqCima = Math.floor(Math.random() * 20) + 25;
+      const tDirCima = Math.floor(Math.random() * 20) + 25;
+      const tDirBaixo = Math.floor(Math.random() * 20) + 25;
+      const tEsqBaixo = Math.floor(Math.random() * 20) + 25;
+      const rot = (Math.random() * 3);
+
+      if (bolha.classList.contains('received')) {
+        bolha.style.borderRadius = `${tEsqCima}px ${tDirCima}px ${tDirBaixo}px 4px / ${tDirCima}px ${tEsqCima}px 6px ${tDirBaixo}px`;
+        bolha.style.transform = `rotate(${rot}deg)`;
+      } else {
+        bolha.style.borderRadius = `${tEsqCima}px ${tDirCima}px 4px ${tEsqBaixo}px / ${tDirBaixo}px ${tEsqCima}px 6px ${tDirCima}px`;
+        bolha.style.transform = `rotate(${rot}deg)`;
+      }
+    }
+
+    // Inicialização da UI
+    window.addEventListener('load', () => { 
+      renderizarContatos();
+      trocarContato("Sistema");
+    });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => trocarContato("Sistema"));
+    }
+  </script>
+</body>
+</html>

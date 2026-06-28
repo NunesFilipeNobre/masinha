@@ -16,9 +16,9 @@ class PeerTable:
         if isinstance(dados_rendezvous, dict):
             lista_peers = dados_rendezvous.get('peers', [])
         else:
-            lista_peers = dados_rendezvous # Caso o professor mude a API no futuro
+            lista_peers = dados_rendezvous 
 
-        # 2. Agora sim iteramos sobre os dicionários dos alunos
+       
         for p in lista_peers:
             nome = p.get('name')
             ns = p.get('namespace')

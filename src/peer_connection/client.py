@@ -4,7 +4,7 @@ import threading
 import json
 import uuid
 import time
-
+# Classe responsável por gerenciar a conexão P2P com outros peers, incluindo envio de mensagens diretas (SEND) e recebimento de mensagens.
 class PeerClient:
     def __init__(self, estado, roteador):
         self.estado = estado
@@ -19,7 +19,7 @@ class PeerClient:
         while self.rodando:
             time.sleep(1)
             agora = time.time()
-            
+            # Varrendo a tabela de rastreamento de ACKs para ver se algum pacote SEND não recebeu ACK em 5 segundos e ack_tracking é um dicionário onde a chave é o msg_id da mensagem SEND e o valor é outro dicionário com informações sobre o destino e o timestamp de quando a mensagem foi enviada.
             for msg_id, info in list(self.estado.tabela.ack_tracking.items()):
                 if agora - info['timestamp'] > 5.0:
                     ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -28,11 +28,13 @@ class PeerClient:
                     # Apaga para não avisar duas vezes
                     del self.estado.tabela.ack_tracking[msg_id]
 
+
+     #Verifica se já tem uma conexão aberta com o peer de destino usando a função obter_conexao da tabela de peers. Se não houver conexão, ele tenta criar uma nova conexão TCP com o peer de destino, realiza o handshake HELLO e, se bem-sucedido, salva a conexão para uso futuro.
     def enviar_mensagem(self, peer_id_destino, texto_mensagem):
-        # 1. Verifica se já temos uma conexão aberta e saudável
+        
         sock = self.estado.tabela.obter_conexao(peer_id_destino)
         
-        # Se NÃO temos a conexão, criamos uma nova DO ZERO
+        
         if not sock:
             info_peer = self.estado.tabela.obter_info(peer_id_destino)
             if not info_peer:
@@ -62,7 +64,7 @@ class PeerClient:
                 if json.loads(resposta.decode('utf-8').strip()).get("type") == "HELLO_OK":
                     sock.settimeout(None)
 
-                    # DEU CERTO! Salva a conexão
+                    #salvar_conexao é uma função que guarda o socket TCP aberto para reuso futuro e está no arquivo peer_table.py
                     self.estado.tabela.salvar_conexao(peer_id_destino, sock)
                     print(f"[CLIENT] Conexão persistente criada com {peer_id_destino}!")
                     
@@ -79,7 +81,7 @@ class PeerClient:
                 print(f"[CLIENT] Erro ao conectar com {peer_id_destino}: {e}")
                 return False
 
-        # 2. Agora o cano está garantido e aberto! Mandamos o SEND.
+        #Agora o cano está abertoe o SEND pode ser enviado.
         try:
             msg_id = str(uuid.uuid4())
             pacote_send = {
@@ -92,13 +94,13 @@ class PeerClient:
                 "ttl": 1
             }
             
-            # --- O CRONÔMETRO DE 5 SEGUNDOS ENTRA AQUI ---
+            
             # Anotamos a hora exata antes do pacote sair para a rede
             self.estado.tabela.ack_tracking[msg_id] = {
                 "timestamp": time.time(),
                 "dst": peer_id_destino
             }
-            # ----------------------------------------------
+            
             
             sock.sendall((json.dumps(pacote_send) + "\n").encode('utf-8'))
             return True
@@ -125,7 +127,7 @@ class PeerClient:
                 for linha in linhas:
                     if not linha: continue
                     pacote = json.loads(linha)
-                    
+                    # A cada pacote recebido, ele chama o roteador para processar a mensagem, passando o pacote e o socket do peer. O roteador é responsável por lidar com diferentes tipos de mensagens (SEND, ACK, PING, etc.) e tomar as ações apropriadas no arquivo message_router.py
                     self.roteador.processar_mensagem(pacote, socket_peer)
         except Exception as e:
             # Silenciado para não sujar o log quando a conexão cai de propósito

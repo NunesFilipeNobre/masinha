@@ -6,6 +6,7 @@ from .server import PeerServer
 from .client import PeerClient
 from .broadcast import PeerBroadcaster
 
+# Classe que gerencia as conexões P2P, incluindo envio de mensagens, broadcast e encerramento de conexões.
 class PeerConnectionManager:
     def __init__(self, estado, roteador):
         self.estado = estado

@@ -1,3 +1,6 @@
+# CLI/log.py
+# Função para ativar o modo de log quando o usuário digita /log <DEBUG|INFO>
+
 def alterar_log(cli, comando):
     partes = comando.split(" ")
     if len(partes) < 2:

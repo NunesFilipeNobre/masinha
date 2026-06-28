@@ -1,4 +1,6 @@
 # CLI/ajuda.py
+
+# Função para mostrar a ajuda com os comandos disponíveis quando o usuário digita /ajuda
 def mostrar_ajuda():
     print("\nComandos disponíveis:")
     print("  /listar                   - Consulta o servidor e mostra os peers online")

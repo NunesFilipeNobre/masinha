@@ -1,6 +1,7 @@
 # CLI/iniciar.py
-import sys
 
+#Lida com a entrada do usuário no terminal, chamando as funções apropriadas para cada comando
+import sys
 from CLI.reconnect import forcar_reconexao
 from .ajuda import mostrar_ajuda
 from .listar import listar_peers
