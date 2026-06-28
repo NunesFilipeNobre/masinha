@@ -53,7 +53,7 @@ def descobrir(meu_namespace="UnB"):
             mensagem_json = json.dumps(dados_descobrir) + "\n"
             s.sendall(mensagem_json.encode('utf-8'))
             
-            resposta = s.recv(4096)
+            resposta = s.recv(32768)
             
             try:
                 texto_resposta = resposta.decode('utf-8')

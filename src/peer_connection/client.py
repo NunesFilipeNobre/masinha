@@ -60,7 +60,7 @@ class PeerClient:
                 sock.sendall((json.dumps(pacote_hello) + "\n").encode('utf-8'))
                 
                 # Espera HELLO_OK
-                resposta = sock.recv(4096)
+                resposta = sock.recv(32768)
                 if json.loads(resposta.decode('utf-8').strip()).get("type") == "HELLO_OK":
                     sock.settimeout(None)
 
@@ -119,7 +119,7 @@ class PeerClient:
         ip_peer, porta_peer = endereco
         try:
             while self.rodando:
-                dados = socket_peer.recv(4096)
+                dados = socket_peer.recv(32768)
                 if not dados:
                     break # Conexão caiu
                 
