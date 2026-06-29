@@ -1,7 +1,7 @@
-# p2p_client.py
 import time
+import threading
 from rendezvous_connection import registrar, descobrir, desregistrar
-from peer_connection import PeerConnectionManager
+from peer_connection.manager import PeerConnectionManager
 from CLI.cli import CLI
 from message_router import MessageRouter
 from keep_alive import KeepAliveManager
@@ -10,27 +10,21 @@ from reconnect_manager import ReconnectManager
 class P2PClient:
     def __init__(self, estado):
         self.estado = estado
-        
-        # Cria o roteador primeiro
         self.roteador = MessageRouter(self.estado)
-        
-        # Passa o roteador para a conexão
         self.conexao_p2p = PeerConnectionManager(self.estado, self.roteador)
-        
         self.keep_alive = KeepAliveManager(self.estado)
         self.reconnect_manager = ReconnectManager(self.estado, self.roteador)
         self.terminal = CLI(self.estado, self)
 
     def iniciar(self):
         """Orquestra o boot do nó P2P"""
-        # Sobe o servidor local para ouvir conexões
         self.conexao_p2p.iniciar_servidor()
 
-        # Registra no randezvous e descobre peers
         sucesso_registro = registrar(
             meu_nome=self.estado.meu_nome, 
             meu_namespace=self.estado.meu_namespace, 
-            minha_porta=self.estado.minha_porta
+            minha_porta=self.estado.minha_porta,
+            meu_ttl=self.estado.meu_ttl
         )
         
         if not sucesso_registro:
@@ -38,18 +32,48 @@ class P2PClient:
             return
 
         time.sleep(1)
-
-        # Popula a memória inicial
         self.atualizar_rede()
 
-        # Trava o programa no loop da Interface
+        # ---> O SEGREDO DO "SIM" NO FORMULÁRIO ENTRA AQUI <---
+        # Inicia o robô que renova o TTL e puxa peers novos automaticamente
+        threading.Thread(target=self._rotina_rendezvous, daemon=True).start()
+
         self.keep_alive.iniciar()
         self.reconnect_manager.iniciar()
         self.terminal.iniciar()
 
+    def _rotina_rendezvous(self):
+        """Robô de segundo plano para manter o nó sempre atualizado e vivo no professor"""
+        tempo_ultimo_registro = time.time()
+        intervalo_discover = 60  # Puxa a lista nova a cada 1 minuto
+        metade_ttl = self.estado.meu_ttl / 2  # Renova o registro na metade da vida útil
+
+        while self.conexao_p2p.rodando:
+            time.sleep(intervalo_discover)
+            
+            # MAGIA AQUI: O robô só fica silencioso se o sistema NÃO estiver em DEBUG
+            modo_silencioso = (self.estado.log_level != "DEBUG")
+            
+            # 1. DISCOVER Recorrente
+            lista_de_peers = descobrir(meu_namespace=self.estado.meu_namespace, silencioso=modo_silencioso)
+            if lista_de_peers:
+                self.estado.atualizar_peers(lista_de_peers)
+
+            # 2. REGISTER Recorrente (Evita que o TTL expire)
+            agora = time.time()
+            if agora - tempo_ultimo_registro >= metade_ttl:
+                registrar(
+                    meu_nome=self.estado.meu_nome,
+                    meu_namespace=self.estado.meu_namespace,
+                    minha_porta=self.estado.minha_porta,
+                    meu_ttl=self.estado.meu_ttl,
+                    silencioso=modo_silencioso 
+                )
+                tempo_ultimo_registro = agora
+
     def atualizar_rede(self):
-        """Encapsula a lógica de descoberta para ser chamada a qualquer momento"""
-        lista_de_peers = descobrir(meu_namespace=self.estado.meu_namespace)
+        """Versão manual chamada pelo /listar"""
+        lista_de_peers = descobrir(meu_namespace=self.estado.meu_namespace, silencioso=False)
         if lista_de_peers:
             self.estado.atualizar_peers(lista_de_peers)
             
@@ -60,8 +84,5 @@ class P2PClient:
         self.keep_alive.rodando = False
         self.reconnect_manager.rodando = False
         
-        # Manda o BYE para os amigos e fecha os sockets
         self.conexao_p2p.encerrar_todas_conexoes()
-        
-        # Avisa o rendezvous que estamos saindo
         desregistrar(self.estado.meu_nome, self.estado.meu_namespace)

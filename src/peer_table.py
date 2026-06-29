@@ -34,7 +34,7 @@ class PeerTable:
                 self.conhecidos[pid] = {
                     'ip':p.get('ip'),  
                     'port': p.get('port'), 
-                    'status': 'DISCONNECTED'
+                    'status': 'NEW'
                 }
             else:
                 # Atualiza caso o IP/Porta da pessoa tenha mudado

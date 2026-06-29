@@ -1,45 +1,45 @@
 import socket
 import json
+from datetime import datetime
 
 # Configurações do servidor Rendezvous
-HOST = 'pyp2p.mfcaetano.cc'  # Usando o Hostnames que você passou nos comentários
-PORT = 8080                  # Porta de conexão
+HOST = 'pyp2p.mfcaetano.cc'
+PORT = 8080
 
-def registrar(meu_nome, meu_namespace, minha_porta):
-    """
-    Conecta ao Rendezvous e registra este nó.
-    Retorna True se o registro foi bem-sucedido, e False caso contrário.
-    """
+def _log_rdv(mensagem, silencioso):
+    """Função interna para padronizar os logs com Timestamp"""
+    if not silencioso:
+        agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"\n[{agora}] [Rendezvous] {mensagem}")
+        # Repinta o cursor do terminal caso o log apareça em segundo plano
+        print("p2p> ", end="", flush=True) 
+
+def registrar(meu_nome, meu_namespace, minha_porta, meu_ttl, silencioso=False):
     dados_registro = {
         "type": "REGISTER",
         "namespace": meu_namespace,
         "name": meu_nome,
         "port": minha_porta,
-        "ttl": 3600
+        "ttl": meu_ttl
     }
     
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(5.0) 
         try:
-            print(f"[REGISTER] Conectando a {HOST}:{PORT}...")
+            _log_rdv(f"Conectando a {HOST}:{PORT} (REGISTER)...", silencioso)
             s.connect((HOST, PORT))
             
             mensagem_json = json.dumps(dados_registro) + "\n"
             s.sendall(mensagem_json.encode('utf-8'))
             
             resposta = s.recv(1024)
-            print("[REGISTER] Sucesso! Resposta do Servidor:")
-            print(" -> " + resposta.decode('utf-8').strip())
-            
+            _log_rdv(f"Sucesso! Resposta: {resposta.decode('utf-8').strip()}", silencioso)
             return True
-            
         except Exception as e:
-            print(f"[REGISTER] Falha ao tentar registrar: {e}")
+            _log_rdv(f"Falha ao tentar registrar: {e}", silencioso)
             return False
 
-def descobrir(meu_namespace="UnB"):
-
-    # Voltamos ao JSON original que você tinha criado!
+def descobrir(meu_namespace="UnB", silencioso=False):
     dados_descobrir = {
         "type": "DISCOVER"
     }
@@ -47,7 +47,7 @@ def descobrir(meu_namespace="UnB"):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(5.0) 
         try:
-            print(f"[DISCOVER] Conectando a {HOST}:{PORT}...")
+            _log_rdv(f"Conectando a {HOST}:{PORT} (DISCOVER)...", silencioso)
             s.connect((HOST, PORT))
             
             mensagem_json = json.dumps(dados_descobrir) + "\n"
@@ -58,19 +58,16 @@ def descobrir(meu_namespace="UnB"):
             try:
                 texto_resposta = resposta.decode('utf-8')
                 json_formatado = json.loads(texto_resposta)
-                print("[DISCOVER] Sucesso! Lista baixada.")
+                _log_rdv("Sucesso! Lista de peers baixada.", silencioso)
                 return json_formatado 
             except json.JSONDecodeError:
-                print("[DISCOVER] Erro de formatação do JSON.")
-                # Vamos imprimir o que veio cru pra não perder a info!
-                print(texto_resposta)
+                _log_rdv(f"Erro de formatação do JSON recebido: {texto_resposta}", silencioso)
                 return []
-                
         except Exception as e:
-            print(f"[DISCOVER] Falha ao tentar descobrir os nós: {e}")
+            _log_rdv(f"Falha ao tentar descobrir os nós: {e}", silencioso)
             return []
+
 def desregistrar(meu_nome, meu_namespace):
-    """Avisa o Rendezvous que estamos saindo da rede"""
     dados_saida = {
         "type": "UNREGISTER",
         "namespace": meu_namespace,
@@ -80,10 +77,10 @@ def desregistrar(meu_nome, meu_namespace):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(3.0) 
         try:
-            print(f"\n[UNREGISTER] Avisando o servidor {HOST}...")
+            _log_rdv("Avisando o servidor sobre o encerramento (UNREGISTER)...", silencioso=False)
             s.connect((HOST, PORT))
             mensagem_json = json.dumps(dados_saida) + "\n"
             s.sendall(mensagem_json.encode('utf-8'))
-            print("[UNREGISTER] Sucesso! Estamos fora do Rendezvous.")
+            _log_rdv("Sucesso! Estamos fora do Rendezvous.", silencioso=False)
         except Exception as e:
-            print(f"[UNREGISTER] Falha ao desregistrar: {e}")
+            _log_rdv(f"Falha ao desregistrar: {e}", silencioso=False)

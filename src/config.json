@@ -1,4 +1,8 @@
 {
+    "name": "Sonze",
+    "namespace": "UnB",
+    "port": 4005,
+    "ttl": 3600,
     "keep_alive_interval": 30,
     "log_level": "INFO",
     "max_reconnect_attempts": 5

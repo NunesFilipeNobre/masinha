@@ -28,7 +28,7 @@ class ReconnectManager:
             
             # Procura quem está morto (STALE)
             for peer_id, info in list(self.estado.tabela.conhecidos.items()):
-                if info.get('status') == 'STALE':
+                if info.get('status') in ['STALE', 'NEW']:
                     
                     # Se é a primeira vez que o vemos cair, inicia o cronômetro
                     if peer_id not in self.backoff_tracking:
@@ -59,7 +59,7 @@ class ReconnectManager:
                             info['status'] = 'CONNECTED'
                             del self.backoff_tracking[peer_id]
                         else:
-                            # A MÁGICA DO BACKOFF EXPONENCIAL (2^tentativas)
+                            
                             tempo_espera = 2 ** tracker['tentativas']
                             tracker['proxima'] = agora + tempo_espera
                             print(f"[RECONNECT] Falhou. Próxima tentativa em {tempo_espera}s.")
