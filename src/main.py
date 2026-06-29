@@ -1,4 +1,9 @@
 # main.py
+
+#INTEGRANTES DO GRUPO 3:
+#Filipe Nobre Nunes	242023523
+#Guilherme Silva Cavalcante	 242001508
+#Rafael Mileo Moreira Krauss Guimarães 242024763
 from state import NodeState
 from p2p_client import P2PClient
 
