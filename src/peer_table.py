@@ -41,11 +41,11 @@ class PeerTable:
                 self.conhecidos[pid]['ip'] = p.get('ip')
                 self.conhecidos[pid]['port'] = p.get('port')
 
-    def salvar_conexao(self, peer_id, socket_conn):
+    def salvar_conexao(self, peer_id, socket_conn, direcao="outbound"):
         """Guarda o cano TCP aberto para reuso futuro"""
         self.conexoes[peer_id] = socket_conn
         if peer_id in self.conhecidos:
-            self.conhecidos[peer_id]['status'] = 'CONNECTED'
+            self.conhecidos[peer_id]['status'] = direcao
 
     def obter_conexao(self, peer_id):
         """Devolve o Socket se ele já estiver aberto"""

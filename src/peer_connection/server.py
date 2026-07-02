@@ -59,7 +59,7 @@ class PeerServer:
                        "ttl": 1
                     }
                     socket_cliente.sendall((json.dumps(resposta_ok) + "\n").encode('utf-8'))
-                    self.estado.tabela.salvar_conexao(peer_remetente, socket_cliente)
+                    self.estado.tabela.salvar_conexao(peer_remetente, socket_cliente, direcao="inbound")
                 else:
                     return
 

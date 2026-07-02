@@ -129,7 +129,7 @@ class MessageRouter:
         if remetente in self.estado.tabela.conhecidos:
             self.estado.tabela.conhecidos[remetente]['status'] = 'DISCONNECTED'
             
-        # 2. ARRANCAMOS O CANO DA LISTA DE ATIVOS (Para o PING parar)
+        # 2. ARRANCAMOS O CANO DA LISTA DE ATIVOS 
         if remetente in self.estado.tabela.conexoes:
             del self.estado.tabela.conexoes[remetente]
             

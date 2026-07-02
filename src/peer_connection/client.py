@@ -65,7 +65,7 @@ class PeerClient:
                     sock.settimeout(None)
 
                     #salvar_conexao é uma função que guarda o socket TCP aberto para reuso futuro e está no arquivo peer_table.py
-                    self.estado.tabela.salvar_conexao(peer_id_destino, sock)
+                    self.estado.tabela.salvar_conexao(peer_id_destino, sock, direcao="outbound")
                     print(f"[CLIENT] Conexão persistente criada com {peer_id_destino}!")
                     
                     # Cria a thread pra escutar sem pedir HELLO de novo

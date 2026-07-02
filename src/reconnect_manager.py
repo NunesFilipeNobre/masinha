@@ -86,7 +86,7 @@ class ReconnectManager:
             
             if json.loads(resposta.decode('utf-8').strip()).get("type") == "HELLO_OK":
                 sock.settimeout(None)
-                self.estado.tabela.salvar_conexao(peer_id, sock)
+                self.estado.tabela.salvar_conexao(peer_id, sock, direcao="outbound")
                 
                 # Coloca a thread para escutar o cano revivido
                 threading.Thread(
