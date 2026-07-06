@@ -7,6 +7,11 @@ from message_router import MessageRouter
 from keep_alive import KeepAliveManager
 from reconnect_manager import ReconnectManager
 
+import json
+
+with open("config.json", "r") as f:
+    config = json.load(f)
+
 class P2PClient:
     def __init__(self, estado):
         self.estado = estado
@@ -45,7 +50,7 @@ class P2PClient:
     def _rotina_rendezvous(self):
         """Robô de segundo plano para manter o nó sempre atualizado e vivo no professor"""
         tempo_ultimo_registro = time.time()
-        intervalo_discover = 60  # Puxa a lista nova a cada 1 minuto
+        intervalo_discover = config["discover_interval"]  # Puxa a lista nova a cada 1 minuto
         metade_ttl = self.estado.meu_ttl / 2  # Renova o registro na metade da vida útil
 
         while self.conexao_p2p.rodando:

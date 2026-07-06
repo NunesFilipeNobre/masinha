@@ -2,6 +2,9 @@
 import json
 from datetime import datetime, timezone
 
+with open("config.json", "r") as f:
+    config = json.load(f)
+    
 class MessageRouter:
     def __init__(self, estado):
         self.estado = estado
@@ -41,7 +44,7 @@ class MessageRouter:
                 "type": "ACK",
                 "msg_id": pacote.get("msg_id"),
                 "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                "ttl": 1
+                "ttl": config.get("fixed_msg_ttl",1)
             }
             try:
                 socket_cliente.sendall((json.dumps(ack) + "\n").encode('utf-8'))
@@ -66,7 +69,7 @@ class MessageRouter:
             "type": "PONG",
             "msg_id": pacote.get("msg_id"),
             "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-            "ttl": 1
+            "ttl": config.get("fixed_msg_ttl",1)
         }
         try:
             socket_cliente.sendall((json.dumps(pong) + "\n").encode('utf-8'))
@@ -118,7 +121,7 @@ class MessageRouter:
             "msg_id": pacote.get("msg_id"),
             "src": self.estado.peer_id,
             "dst": remetente,
-            "ttl": 1
+            "ttl": config.get("fixed_msg_ttl",1)
         }
         try:
             socket_cliente.sendall((json.dumps(bye_ok) + "\n").encode('utf-8'))

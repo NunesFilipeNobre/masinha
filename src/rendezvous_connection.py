@@ -2,9 +2,12 @@ import socket
 import json
 from datetime import datetime
 
-# Configurações do servidor Rendezvous
-HOST = 'pyp2p.mfcaetano.cc'
-PORT = 8080
+# Configurações do servidor Rendezvous pyp2p.mfcaetano.cc
+with open("config.json", "r") as f:
+    config = json.load(f)
+
+HOST = config["host"]
+PORT = config["rdv_port"]
 
 def _log_rdv(mensagem, silencioso):
     """Função interna para padronizar os logs com Timestamp"""

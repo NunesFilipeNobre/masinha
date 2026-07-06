@@ -4,6 +4,9 @@ import socket
 import threading
 import json
 
+with open("config.json", "r") as f:
+    config = json.load(f)
+    
 class PeerServer:
     def __init__(self, estado, roteador):
         self.estado = estado
@@ -20,7 +23,7 @@ class PeerServer:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as servidor:
             servidor.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
-                servidor.bind(('0.0.0.0', self.porta_local))
+                servidor.bind((config.get("listen_host", "0.0.0.0"), self.porta_local))
                 servidor.listen()
                 
                 while self.rodando:
@@ -55,8 +58,8 @@ class PeerServer:
                        "type": "HELLO_OK",
                        "peer_id": self.estado.peer_id,
                        "version": "1.0",
-                       "features": ["ack", "metrics"],
-                       "ttl": 1
+                       "features": config["features"],
+                       "ttl": config.get("fixed_msg_ttl",1)
                     }
                     socket_cliente.sendall((json.dumps(resposta_ok) + "\n").encode('utf-8'))
                     self.estado.tabela.salvar_conexao(peer_remetente, socket_cliente, direcao="inbound")

@@ -4,6 +4,9 @@ import threading
 import json
 import uuid
 import time
+
+with open("config.json", "r") as f:
+    config = json.load(f)
 # Classe responsável por gerenciar a conexão P2P com outros peers, incluindo envio de mensagens diretas (SEND) e recebimento de mensagens.
 class PeerClient:
     def __init__(self, estado, roteador):
@@ -54,8 +57,8 @@ class PeerClient:
                    "type": "HELLO",
                    "peer_id": self.estado.peer_id,
                    "version": "1.0",
-                   "features": ["ack", "metrics"],
-                   "ttl": 1
+                   "features": config["features"],
+                   "ttl": config.get("fixed_msg_ttl",1)
                 }
                 sock.sendall((json.dumps(pacote_hello) + "\n").encode('utf-8'))
                 
@@ -91,7 +94,7 @@ class PeerClient:
                 "dst": peer_id_destino,
                 "payload": texto_mensagem,
                 "require_ack": True,
-                "ttl": 1
+                "ttl": config.get("fixed_msg_ttl",1)
             }
             
             

@@ -3,6 +3,9 @@
 import json
 import uuid
 
+with open("config.json", "r") as f:
+    config = json.load(f)
+    
 class PeerBroadcaster:
     def __init__(self, estado):
         self.estado = estado
@@ -17,7 +20,7 @@ class PeerBroadcaster:
             "dst": destino,
             "payload": texto_mensagem,
             "require_ack": False,  # PUB nunca pede ACK de acordo com a especificação
-            "ttl": 1
+            "ttl": config.get("fixed_msg_ttl",1)
         }
         json_pub = (json.dumps(pacote_pub) + "\n").encode('utf-8')
         enviados = 0

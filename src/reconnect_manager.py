@@ -4,6 +4,9 @@ import time
 import socket
 import json
 
+with open("config.json", "r") as f:
+    config = json.load(f)
+    
 class ReconnectManager:
     def __init__(self, estado, roteador):
         self.estado = estado
@@ -76,8 +79,8 @@ class ReconnectManager:
                "type": "HELLO",
                "peer_id": self.estado.peer_id,
                "version": "1.0",
-               "features": ["ack", "metrics"],
-               "ttl": 1
+               "features": config["features"],
+               "ttl": config.get("fixed_msg_ttl",1)
             }
             sock.sendall((json.dumps(pacote_hello) + "\n").encode('utf-8'))
             

@@ -6,6 +6,9 @@ from .server import PeerServer
 from .client import PeerClient
 from .broadcast import PeerBroadcaster
 
+with open("config.json", "r") as f:
+    config = json.load(f)
+    
 # Classe que gerencia as conexões P2P, incluindo envio de mensagens, broadcast e encerramento de conexões.
 class PeerConnectionManager:
     def __init__(self, estado, roteador):
@@ -49,7 +52,7 @@ class PeerConnectionManager:
                     "src": self.estado.peer_id,
                     "dst": peer_id,
                     "reason": "Encerrando nó P2P",
-                    "ttl": 1
+                    "ttl": config.get("fixed_msg_ttl",1)
                 }
                 sock.sendall((json.dumps(pacote_bye) + "\n").encode('utf-8'))
                 print(f"[SHUTDOWN] BYE enviado para {peer_id}")

@@ -1,9 +1,15 @@
 {
-    "name": "Sonze",
-    "namespace": "UnB",
+    "host":"pyp2p.mfcaetano.cc",
+    "rdv_port": 8080,
+    "name": "Grupo3",
+    "namespace": "CIC",
+    "listen_host": "0.0.0.0",
     "port": 4005,
+    "discover_interval": 60,
     "ttl": 3600,
+    "fixed_msg_ttl": 1,
     "keep_alive_interval": 30,
     "log_level": "INFO",
-    "max_reconnect_attempts": 5
+    "max_reconnect_attempts": 5,
+    "features": ["ack", "metrics"]
 }

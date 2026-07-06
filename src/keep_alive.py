@@ -7,6 +7,10 @@ import json
 import uuid
 from datetime import datetime, timezone
 
+with open("config.json", "r") as f:
+    config = json.load(f)
+
+    
 class KeepAliveManager:
     def __init__(self, estado):
         self.estado = estado
@@ -33,7 +37,7 @@ class KeepAliveManager:
                         "type": "PING",
                         "msg_id": msg_id_unico,
                         "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                        "ttl": 1
+                        "ttl": config.get("fixed_msg_ttl",1)
                     }
                     self.estado.tabela.ping_tracking[msg_id_unico] = (peer_id, time.time())
                     sock.sendall((json.dumps(pacote_ping) + "\n").encode('utf-8'))
