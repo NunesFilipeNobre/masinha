@@ -1,4 +1,5 @@
 {
+    "app_name": "Masinha",
     "host":"pyp2p.mfcaetano.cc",
     "rdv_port": 8080,
     "name": "Grupo3",
