@@ -44,8 +44,23 @@ class PeerTable:
     def salvar_conexao(self, peer_id, socket_conn, direcao="outbound"):
         """Guarda o cano TCP aberto para reuso futuro"""
         self.conexoes[peer_id] = socket_conn
-        if peer_id in self.conhecidos:
-            self.conhecidos[peer_id]['status'] = direcao
+        
+        
+        #criamos o cadastro dele "na marra" lendo o IP físico do cano TCP.
+        if peer_id not in self.conhecidos:
+            try:
+                ip, porta = socket_conn.getpeername()
+            except Exception:
+                ip, porta = "Desconhecido", 0
+                
+            self.conhecidos[peer_id] = {
+                'ip': ip,
+                'port': porta
+            }
+            
+        
+        self.conhecidos[peer_id]['direcao'] = direcao
+        self.conhecidos[peer_id]['status'] = 'CONNECTED'
 
     def obter_conexao(self, peer_id):
         """Devolve o Socket se ele já estiver aberto"""

@@ -19,7 +19,7 @@ class PeerBroadcaster:
             "src": self.estado.peer_id,
             "dst": destino,
             "payload": texto_mensagem,
-            "require_ack": False,  # PUB nunca pede ACK de acordo com a especificação
+            "require_ack": False,  # PUB nunca pede ACK 
             "ttl": config.get("fixed_msg_ttl",1)
         }
         json_pub = (json.dumps(pacote_pub) + "\n").encode('utf-8')
@@ -28,14 +28,13 @@ class PeerBroadcaster:
         # Vasculha todos os peers conhecidos na tabela
         for peer_id, info in list(self.estado.tabela.conhecidos.items()):
             
-            # Lógica de Namespace-cast do professor (ex: se destino for #UnB)
+            # Lógica de Namespace-cast
             if destino.startswith("#"):
-                ns_alvo = destino[1:] # Tira a hashtag para sobrar só 'UnB'
-                # Se o peer_id (ex: bob@CIC) não termina com '@UnB', pula ele
+                ns_alvo = destino[1:] 
                 if not peer_id.endswith(f"@{ns_alvo}"):
                     continue
 
-            # Tenta pegar a conexão. O PUB só vai para quem já tem cano aberto!
+            # O PUB só vai para quem já tem conexão
             sock = self.estado.tabela.obter_conexao(peer_id)
             if sock:
                 try:

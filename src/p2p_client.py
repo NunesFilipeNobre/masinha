@@ -39,8 +39,8 @@ class P2PClient:
         time.sleep(1)
         self.atualizar_rede()
 
-        # ---> O SEGREDO DO "SIM" NO FORMULÁRIO ENTRA AQUI <---
-        # Inicia o robô que renova o TTL e puxa peers novos automaticamente
+        
+        # Inicia o renovo do TTL e puxa peers novos automaticamente
         threading.Thread(target=self._rotina_rendezvous, daemon=True).start()
 
         self.keep_alive.iniciar()
@@ -50,21 +50,21 @@ class P2PClient:
     def _rotina_rendezvous(self):
         """Robô de segundo plano para manter o nó sempre atualizado e vivo no professor"""
         tempo_ultimo_registro = time.time()
-        intervalo_discover = config["discover_interval"]  # Puxa a lista nova a cada 1 minuto
+        intervalo_discover = config["discover_interval"]  
         metade_ttl = self.estado.meu_ttl / 2  # Renova o registro na metade da vida útil
 
         while self.conexao_p2p.rodando:
             time.sleep(intervalo_discover)
             
-            # MAGIA AQUI: O robô só fica silencioso se o sistema NÃO estiver em DEBUG
+            # silencioso se o sistema n estiver em DEBUG
             modo_silencioso = (self.estado.log_level != "DEBUG")
             
-            # 1. DISCOVER Recorrente
+            # DISCOVER Recorrente
             lista_de_peers = descobrir(meu_namespace=self.estado.meu_namespace, silencioso=modo_silencioso)
             if lista_de_peers:
                 self.estado.atualizar_peers(lista_de_peers)
 
-            # 2. REGISTER Recorrente (Evita que o TTL expire)
+            # REGISTER Recorrente 
             agora = time.time()
             if agora - tempo_ultimo_registro >= metade_ttl:
                 registrar(

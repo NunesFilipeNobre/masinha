@@ -4,7 +4,7 @@ from peer_table import PeerTable
 
 class NodeState:
     def __init__(self):
-        # 1. Carrega os dados de forma dinâmica, sem hardcode
+        #Carrega os dados de forma dinâmica
         try:
             with open("config.json", "r") as f:
                 self.config = json.load(f)

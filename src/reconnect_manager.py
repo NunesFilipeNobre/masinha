@@ -26,24 +26,24 @@ class ReconnectManager:
 
     def _rotina_reconexao(self):
         while self.rodando:
-            time.sleep(2) # Vare a tabela a cada 2 segundos
+            time.sleep(2) 
             agora = time.time()
             
-            # Procura quem está morto (STALE)
+            
             for peer_id, info in list(self.estado.tabela.conhecidos.items()):
                 if info.get('status') in ['STALE', 'NEW']:
                     
-                    # Se é a primeira vez que o vemos cair, inicia o cronômetro
+                    # Se é a primeira vez q cai, inicia o cronômetro
                     if peer_id not in self.backoff_tracking:
                         self.backoff_tracking[peer_id] = {'tentativas': 0, 'proxima': agora}
                         
                     tracker = self.backoff_tracking[peer_id]
                     
-                    # Chegou a hora de tentar de novo?
+                   
                     if agora >= tracker['proxima']:
                         tracker['tentativas'] += 1
                         
-                        # Se passou do limite, desistimos de vez
+                        #desiste se já passou do limite
                         if tracker['tentativas'] > self.max_attempts:
                             print(f"\n[RECONNECT] Limite atingido! {peer_id} marcado como DISCONNECTED.")
                             print("p2p> ", end="", flush=True)
@@ -84,7 +84,7 @@ class ReconnectManager:
             }
             sock.sendall((json.dumps(pacote_hello) + "\n").encode('utf-8'))
             
-            # Já usando o limite de 32 KiB exigido pelo professor!
+            #32 Kbit buffer para receber a resposta do peer
             resposta = sock.recv(32768) 
             
             if json.loads(resposta.decode('utf-8').strip()).get("type") == "HELLO_OK":
@@ -117,6 +117,6 @@ class ReconnectManager:
         except Exception:
             pass
         finally:
-            # Se cair de novo no futuro, marca como STALE para reviver novamente
+            
             if peer_id in self.estado.tabela.conhecidos:
                 self.estado.tabela.conhecidos[peer_id]['status'] = 'STALE'

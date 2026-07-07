@@ -54,7 +54,7 @@ class MessageRouter:
     def _lidar_com_ack(self, pacote):
         msg_id = pacote.get("msg_id")
         
-        # NOVO: O ACK chegou a tempo! Apagamos da tabela do vigia
+        
         if msg_id in self.estado.tabela.ack_tracking:
             del self.estado.tabela.ack_tracking[msg_id]
             
@@ -81,10 +81,10 @@ class MessageRouter:
         import time
         msg_id = pacote.get("msg_id")
         
-        # Verifica se nós enviamos esse PING
+        # Verifica esse PING
         if msg_id in self.estado.tabela.ping_tracking:
             peer_id, tempo_envio = self.estado.tabela.ping_tracking.pop(msg_id)
-            rtt_ms = (time.time() - tempo_envio) * 1000 # Converte pra milissegundos
+            rtt_ms = (time.time() - tempo_envio) * 1000 # ms
             
             # Puxa o cadastro do peer para guardar o histórico
             info_peer = self.estado.tabela.conhecidos.get(peer_id)
@@ -106,7 +106,7 @@ class MessageRouter:
         destino = pacote.get("dst", "*")
         texto = pacote.get("payload", "")
         
-        # Formata bonitinho para o usuário saber que foi um grito público
+        
         print(f"\n[BROADCAST de {remetente} -> {destino}]: {texto}")
         print("p2p> ", end="", flush=True)
     def _lidar_com_bye(self, pacote, socket_cliente):
@@ -115,7 +115,7 @@ class MessageRouter:
         print(f"\n[SESSÃO] {remetente} encerrou a conexão graciosamente.")
         print("p2p> ", end="", flush=True)
         
-        # O documento exige enviar um BYE_OK de volta antes de fechar a porta
+       
         bye_ok = {
             "type": "BYE_OK",
             "msg_id": pacote.get("msg_id"),
@@ -128,15 +128,13 @@ class MessageRouter:
         except Exception:
             pass
             
-        # 1. Limpa o status na tabela de peers
+        
         if remetente in self.estado.tabela.conhecidos:
             self.estado.tabela.conhecidos[remetente]['status'] = 'DISCONNECTED'
-            
-        # 2. ARRANCAMOS O CANO DA LISTA DE ATIVOS 
+             
         if remetente in self.estado.tabela.conexoes:
             del self.estado.tabela.conexoes[remetente]
             
-        # 3. Mandamos o Windows fechar a porta localmente
         try:
             socket_cliente.close()
         except:

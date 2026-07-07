@@ -14,7 +14,7 @@ def _log_rdv(mensagem, silencioso):
     if not silencioso:
         agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"\n[{agora}] [Rendezvous] {mensagem}")
-        # Repinta o cursor do terminal caso o log apareça em segundo plano
+        
         print("p2p> ", end="", flush=True) 
 
 def registrar(meu_nome, meu_namespace, minha_porta, meu_ttl, silencioso=False):

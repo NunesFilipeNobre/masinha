@@ -59,7 +59,7 @@ class PeerConnectionManager:
             except Exception:
                 pass
             
-            # Fecha o socket localmente para liberar a porta do sistema operacional
+        
             try:
                 sock.close()
             except:

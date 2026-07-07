@@ -98,7 +98,7 @@ class PeerClient:
             }
             
             
-            # Anotamos a hora exata antes do pacote sair para a rede
+            # hora antes do pacote sair para a rede
             self.estado.tabela.ack_tracking[msg_id] = {
                 "timestamp": time.time(),
                 "dst": peer_id_destino
@@ -111,7 +111,7 @@ class PeerClient:
             print(f"[CLIENT] O cano morreu inesperadamente: {e}")
             self.estado.tabela.conhecidos[peer_id_destino]['status'] = "STALE"
             
-            # Se o socket quebrou na hora de enviar, a gente remove a contagem do timeout
+            # Se o socket quebrou, remove a contagem do timeout
             if msg_id in self.estado.tabela.ack_tracking:
                 del self.estado.tabela.ack_tracking[msg_id]
                 
