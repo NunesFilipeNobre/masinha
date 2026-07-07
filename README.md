@@ -1,4 +1,14 @@
-# masinha 
--Rafael Mileo Moreira Krauss Guimarães
--Guilherme Silva Cavalcante
--Filipe Nobre Nunes
+# masinha
+# Masinha
+
+<br>
+
+- Rafael Mileo Moreira Krauss Guimarães
+
+<br>
+
+- Guilherme Silva Cavalcante
+
+<br>
+
+- Filipe Nobre Nunes
